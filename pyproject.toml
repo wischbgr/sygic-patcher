@@ -1,0 +1,15 @@
+[project]
+name = "sygic-patcher"
+version = "0.1.0"
+description = "Patch Sygic GPS Navigation & Maps for Android to unlock native framerate, native render resolution, the internal debug menu, and more."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.9"
+# Both scripts are stdlib-only by design (no third-party Python packages) --
+# this file exists so uv has a canonical place to pin the Python version and
+# track dependencies if that ever changes, not because any are needed today.
+dependencies = []
+
+# Loose utility scripts, not an importable package -- nothing to build/install.
+[tool.uv]
+package = false

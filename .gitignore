@@ -1,3 +1,17 @@
+# sygic-patcher specific -- never commit Sygic's proprietary binaries, your
+# own signing key, or generated build output.
+*.apk
+*.xapk
+*.jks
+*.keystore
+/deps/
+skin_override/
+skin_*/
+my_skin_edits/
+decompiled/
+module/*.apk
+build/output/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
