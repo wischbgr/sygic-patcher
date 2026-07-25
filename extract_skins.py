@@ -30,6 +30,30 @@ import os
 import sys
 import zipfile
 
+# ---------------------------------------------------------------------------
+# Output helpers -- [+] a step/action, [i] informational, [-] error/warning
+# ---------------------------------------------------------------------------
+
+def step(msg):
+    """Announce the start of a top-level step."""
+    print(f"\n[+] {msg}")
+
+
+def ok(msg, indent=1):
+    """A completed sub-action within the current step."""
+    print("    " * indent + f"[+] {msg}")
+
+
+def info(msg, indent=0):
+    """Informational output -- skips, summaries, tips."""
+    print("    " * indent + f"[i] {msg}")
+
+
+def err(msg):
+    """Abort with an error message."""
+    raise SystemExit(f"[-] {msg}")
+
+
 SKIN_PREFIX = "assets/res/skin/"
 DEFAULT_OUTPUT_DIR = "skin_override"
 
@@ -40,7 +64,7 @@ def find_base_apk(xapk_zip):
     for entry in manifest["split_apks"]:
         if entry["id"] == "base":
             return entry["file"]
-    raise SystemExit("ERROR: no base APK entry found in manifest.json")
+    err("No base APK entry found in manifest.json")
 
 
 def main():
@@ -54,38 +78,39 @@ def main():
 
     with zipfile.ZipFile(args.input_xapk) as xapk_zip:
         base_file = find_base_apk(xapk_zip)
-        print(f"base APK: {base_file}")
+        info(f"Base APK: {base_file}")
         base_bytes = xapk_zip.read(base_file)
 
     with zipfile.ZipFile(io.BytesIO(base_bytes)) as base_zip:
         skin_entries = [n for n in base_zip.namelist()
                          if n.startswith(SKIN_PREFIX) and not n.endswith("/")]
         if not skin_entries:
-            raise SystemExit(f"ERROR: no entries found under {SKIN_PREFIX} in {base_file}")
+            err(f"No entries found under {SKIN_PREFIX} in {base_file}")
 
         out_skin_dir = os.path.join(args.output_dir, "assets", "res", "skin")
         os.makedirs(out_skin_dir, exist_ok=True)
 
+        step(f"Extracting {len(skin_entries)} file(s) to {out_skin_dir}")
         extracted = 0
         skipped = 0
         for entry in sorted(skin_entries):
             rel_name = entry[len(SKIN_PREFIX):]
             out_path = os.path.join(out_skin_dir, rel_name)
             if os.path.exists(out_path) and not args.force:
-                print(f"  [skip, exists] {rel_name}  (use --force to overwrite)")
+                info(f"Skip (exists): {rel_name}  (use --force to overwrite)", indent=1)
                 skipped += 1
                 continue
             with base_zip.open(entry) as src, open(out_path, "wb") as dst:
                 dst.write(src.read())
-            print(f"  extracted: {rel_name}")
+            ok(f"Extracted: {rel_name}")
             extracted += 1
 
-    print(f"\n{extracted} file(s) extracted, {skipped} skipped -> {out_skin_dir}")
+    info(f"\nExtracted {extracted} file(s), {skipped} skipped -> {out_skin_dir}")
     if args.output_dir == DEFAULT_OUTPUT_DIR:
-        print(f"Edit the files under {out_skin_dir}, then just run build_patched_xapk.py "
-              f"(it picks up ./{DEFAULT_OUTPUT_DIR} automatically)")
+        info(f"Edit the files under {out_skin_dir}, then just run build_patched_xapk.py "
+             f"(it picks up ./{DEFAULT_OUTPUT_DIR} automatically)")
     else:
-        print(f"Edit the files under {out_skin_dir}, then pass -S {args.output_dir} to build_patched_xapk.py")
+        info(f"Edit the files under {out_skin_dir}, then pass -S {args.output_dir} to build_patched_xapk.py")
 
 
 if __name__ == "__main__":

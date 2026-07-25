@@ -49,6 +49,30 @@ import sys
 import urllib.request
 import zipfile
 
+# ---------------------------------------------------------------------------
+# Output helpers -- [+] a step/action, [i] informational, [-] error/warning
+# ---------------------------------------------------------------------------
+
+def step(msg):
+    """Announce the start of a top-level step."""
+    print(f"\n[+] {msg}")
+
+
+def ok(msg, indent=1):
+    """A completed sub-action within the current step."""
+    print("    " * indent + f"[+] {msg}")
+
+
+def info(msg, indent=0, file=None):
+    """Informational output -- skips, summaries, tips."""
+    print("    " * indent + f"[i] {msg}", file=file)
+
+
+def err(msg):
+    """Abort with an error message."""
+    raise SystemExit(f"[-] {msg}")
+
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEPS_DIR = "deps"
 DEPS_ROOT = os.path.join(HERE, DEPS_DIR)
@@ -120,7 +144,7 @@ def host_os():
 
 
 def download(url):
-    print(f"  downloading {url} ...")
+    ok(f"Downloading {url}")
     with urllib.request.urlopen(url) as resp:
         return resp.read()
 
@@ -136,10 +160,8 @@ def sha1_hex(data):
 def verify(data, expected_hex, algo, desc):
     actual = algo(data).hexdigest()
     if actual != expected_hex:
-        raise SystemExit(f"ERROR: checksum mismatch for {desc}\n"
-                          f"  expected: {expected_hex}\n"
-                          f"  got:      {actual}\n"
-                          f"Download may be corrupted or tampered with -- not writing it.")
+        err(f"Checksum mismatch for {desc} (expected {expected_hex}, got {actual}) -- "
+            f"download may be corrupted or tampered with, not writing it.")
 
 
 # Standalone jars that have their own env var override (the smalilibs/ group
@@ -153,18 +175,18 @@ def fetch_maven_jars(force):
         is_smalilibs = rel_dest.startswith("smalilibs" + os.sep)
         if not force:
             if is_smalilibs and smali_libs_override:
-                print(f"  [skip, SMALI_LIBS_DIR={smali_libs_override} already set] {rel_dest}")
+                info(f"Skip (SMALI_LIBS_DIR={smali_libs_override} already set): {rel_dest}", indent=1)
                 continue
             env_var = MAVEN_JAR_ENV_VARS.get(rel_dest)
             if env_var:
                 env_val = env_path_if_exists(env_var)
                 if env_val:
-                    print(f"  [skip, {env_var}={env_val} already set] {rel_dest}")
+                    info(f"Skip ({env_var}={env_val} already set): {rel_dest}", indent=1)
                     continue
         dest = os.path.join(DEPS_ROOT, rel_dest)
         rel_print = os.path.join(DEPS_DIR, rel_dest)
         if os.path.exists(dest) and not force:
-            print(f"  [skip, exists] {rel_print}")
+            info(f"Skip (exists): {rel_print}", indent=1)
             continue
         url = f"{MAVEN_BASE}/{group}/{artifact}/{version}/{artifact}-{version}.jar"
         data = download(url)
@@ -172,7 +194,6 @@ def fetch_maven_jars(force):
         os.makedirs(os.path.dirname(dest) or ".", exist_ok=True)
         with open(dest, "wb") as f:
             f.write(data)
-        print(f"  wrote: {rel_print}")
 
 
 def fetch_build_tools(force):
@@ -180,12 +201,12 @@ def fetch_build_tools(force):
         zipalign_env = env_path_if_exists("ZIPALIGN")
         apksigner_env = env_path_if_exists("APKSIGNER")
         if zipalign_env and apksigner_env:
-            print(f"  [skip, ZIPALIGN={zipalign_env} / APKSIGNER={apksigner_env} already set]")
+            info(f"Skip (ZIPALIGN={zipalign_env} / APKSIGNER={apksigner_env} already set)", indent=1)
             return
         zipalign_path = zipalign_env or shutil.which("zipalign")
         apksigner_path = apksigner_env or shutil.which("apksigner")
         if zipalign_path and apksigner_path:
-            print(f"  [skip, found on PATH] zipalign ({zipalign_path}), apksigner ({apksigner_path})")
+            info(f"Skip (found on PATH): zipalign ({zipalign_path}), apksigner ({apksigner_path})", indent=1)
             return
 
     os_name = host_os()
@@ -194,12 +215,12 @@ def fetch_build_tools(force):
     dest_paths = [os.path.join(DEPS_ROOT, BUILD_TOOLS_DIR, m) for m in members]
 
     if all(os.path.exists(p) for p in dest_paths) and not force:
-        print(f"  [skip, exists] {DEPS_DIR}/{BUILD_TOOLS_DIR}/ ({os_name})")
+        info(f"Skip (exists): {DEPS_DIR}/{BUILD_TOOLS_DIR}/ ({os_name})", indent=1)
         return
 
     if os_name == "linux":
-        print("  (tip: on Debian/Ubuntu, 'sudo apt install zipalign apksigner' avoids this "
-              "download entirely and gets picked up automatically next time)")
+        info("Tip: on Debian/Ubuntu, 'sudo apt install zipalign apksigner' avoids this download entirely "
+             "and gets picked up automatically next time", indent=1)
 
     url = f"https://dl.google.com/android/repository/{archive_name}"
     data = download(url)
@@ -213,7 +234,6 @@ def fetch_build_tools(force):
                 out.write(src.read())
             if not dest.endswith((".jar", ".bat")):
                 os.chmod(dest, 0o755)
-            print(f"  wrote: {os.path.relpath(dest, HERE)}")
 
 
 def main():
@@ -221,13 +241,11 @@ def main():
     p.add_argument("--force", action="store_true", help="re-download and overwrite files that already exist")
     args = p.parse_args()
 
-    print(f"smali/baksmali {SMALI_VERSION} (Maven Central) ...")
+    step(f"Fetching smali/baksmali {SMALI_VERSION} (Maven Central)")
     fetch_maven_jars(args.force)
 
-    print(f"Android SDK build-tools {BUILD_TOOLS_VERSION} ({host_os()}, dl.google.com) ...")
+    step(f"Fetching Android SDK build-tools {BUILD_TOOLS_VERSION} ({host_os()}, dl.google.com)")
     fetch_build_tools(args.force)
-
-    print("\ndone -- build_patched_xapk.py's default tool paths should now resolve with no env vars needed.")
 
 
 if __name__ == "__main__":

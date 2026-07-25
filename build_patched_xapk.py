@@ -27,6 +27,45 @@ import tempfile
 import zipfile
 import zlib
 
+# ---------------------------------------------------------------------------
+# Output helpers -- [+] a step/action, [i] informational, [-] error/warning
+# ---------------------------------------------------------------------------
+
+def step(msg):
+    """Announce the start of a top-level step."""
+    print(f"\n[+] {msg}")
+
+
+def ok(msg, indent=1):
+    """A completed sub-action within the current step."""
+    print("    " * indent + f"[+] {msg}")
+
+
+def info(msg, indent=0, file=None):
+    """Informational output -- skips, summaries, tips."""
+    print("    " * indent + f"[i] {msg}", file=file)
+
+
+def warn(msg, file=None):
+    """A non-fatal caution."""
+    print(f"[-] WARNING: {msg}", file=file)
+
+
+def err(msg):
+    """Abort with an error message."""
+    raise SystemExit(f"[-] {msg}")
+
+
+VERBOSE = False
+
+BANNER = r"""
+ SSSS Y   Y  GGG  III  CCC        PPPP    A   TTTTT  CCC  H   H EEEEE RRRR
+S      Y Y  G      I  C   C       P   P  A A    T   C   C H   H E     R   R
+ SSS    Y   G GG   I  C           PPPP  AAAAA   T   C     HHHHH EEEE  RRRR
+    S   Y   G   G  I  C   C       P     A   A   T   C   C H   H E     R  R
+SSSS    Y    GGG  III  CCC        P     A   A   T    CCC  H   H EEEEE R   R
+"""
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 # Where fetch_tools.py downloads things -- kept out of the repo root itself.
 DEPS_ROOT = os.path.join(HERE, "deps")
@@ -155,21 +194,21 @@ def patch_promo_dialog(root):
         content = f.read()
     m = PROMO_DIALOG_METHOD_PATTERN.search(content)
     if not m:
-        raise SystemExit("ERROR: checkShowPromoDialog() (uX2.D0) method not found -- "
-                          "app version likely doesn't match what this script was derived against.")
+        err("Method checkShowPromoDialog() (uX2.D0) not found -- "
+            "app version likely doesn't match what this script was derived against.")
     head, body, tail = m.group(1), m.group(2), m.group(3)
     if body.startswith("goto/16 :"):
-        print("  [skip, already patched] startup promo webview dialog disabled")
+        info("Already patched: startup promo webview dialog disabled", indent=1)
         return
     labels = re.findall(r"^    :(\w+)$", body, re.MULTILINE)
     if not labels:
-        raise SystemExit("ERROR: no labels found in checkShowPromoDialog() -- "
-                          "app version likely doesn't match what this script was derived against.")
+        err("No labels found in checkShowPromoDialog() -- "
+            "app version likely doesn't match what this script was derived against.")
     target = labels[-1]
     new_content = content[:m.start()] + head + f"goto/16 :{target}\n\n" + body + tail + content[m.end():]
     with open(path, "w") as f:
         f.write(new_content)
-    print(f"  patched: startup promo webview dialog ('buy Premium Plus' popup) disabled (-> :{target})")
+    ok(f"Patched: startup promo webview dialog ('buy Premium Plus' popup) disabled (-> :{target})")
 
 
 # ---------------------------------------------------------------------------
@@ -177,7 +216,8 @@ def patch_promo_dialog(root):
 # ---------------------------------------------------------------------------
 
 def run(cmd, **kw):
-    print("+", " ".join(cmd))
+    if VERBOSE:
+        ok("$ " + " ".join(cmd))
     subprocess.run(cmd, check=True, **kw)
 
 
@@ -186,15 +226,15 @@ def patch_smali_text(root, rel_path, old, new, desc):
     with open(path, "r") as f:
         content = f.read()
     if new in content and old not in content:
-        print(f"  [skip, already patched] {desc}")
+        info(f"Already patched: {desc}", indent=1)
         return
     if old not in content:
-        raise SystemExit(f"ERROR: expected smali text not found for '{desc}' in {rel_path}\n"
-                          f"App version likely doesn't match what this script was derived against.")
+        err(f"Expected smali text not found for '{desc}' in {rel_path} -- "
+            f"app version likely doesn't match what this script was derived against.")
     content = content.replace(old, new, 1)
     with open(path, "w") as f:
         f.write(content)
-    print(f"  patched: {desc}")
+    ok(f"Patched: {desc}")
 
 
 def patch_smali_regex(root, rel_path, pattern, repl, desc):
@@ -203,11 +243,11 @@ def patch_smali_regex(root, rel_path, pattern, repl, desc):
         content = f.read()
     new_content, n = pattern.subn(repl, content, count=1)
     if n == 0:
-        raise SystemExit(f"ERROR: expected smali pattern not found for '{desc}' in {rel_path}\n"
-                          f"App version likely doesn't match what this script was derived against.")
+        err(f"Expected smali pattern not found for '{desc}' in {rel_path} -- "
+            f"app version likely doesn't match what this script was derived against.")
     with open(path, "w") as f:
         f.write(new_content)
-    print(f"  patched: {desc}")
+    ok(f"Patched: {desc}")
 
 
 def patch_so_in_zip(apk_path, patches):
@@ -215,39 +255,38 @@ def patch_so_in_zip(apk_path, patches):
     lib/arm64-v8a/libsygic.so inside apk_path, in place. Entry must be STORED
     (uncompressed), which it is for this app (extractNativeLibs=false)."""
     zf = zipfile.ZipFile(apk_path, "r")
-    info = zf.getinfo(ARM64_SO_ENTRY)
-    if info.compress_type != zipfile.ZIP_STORED:
-        raise SystemExit(f"ERROR: {ARM64_SO_ENTRY} is not STORED (compress_type={info.compress_type}); "
-                          f"raw offset patch assumptions no longer hold.")
+    zinfo = zf.getinfo(ARM64_SO_ENTRY)
+    if zinfo.compress_type != zipfile.ZIP_STORED:
+        err(f"Entry {ARM64_SO_ENTRY} is not STORED (compress_type={zinfo.compress_type}); "
+            f"raw offset patch assumptions no longer hold.")
     with open(apk_path, "rb") as f:
-        f.seek(info.header_offset)
+        f.seek(zinfo.header_offset)
         local_header = f.read(30)
         sig, ver, flag, method, mtime, mdate, crc, csize, usize, fnlen, exlen = struct.unpack(
             "<IHHHHHIIIHH", local_header)
         assert sig == 0x04034b50
-        data_start = info.header_offset + 30 + fnlen + exlen
+        data_start = zinfo.header_offset + 30 + fnlen + exlen
         f.seek(data_start)
-        entry_data = bytearray(f.read(info.file_size))
+        entry_data = bytearray(f.read(zinfo.file_size))
         assert zlib.crc32(bytes(entry_data)) & 0xffffffff == crc, "CRC mismatch reading original entry"
 
     for off, old, new, desc in patches:
         cur = bytes(entry_data[off:off + len(old)])
         if cur == new:
-            print(f"  [skip, already patched] {desc}")
+            info(f"Already patched: {desc}", indent=1)
             continue
         if cur != old:
-            raise SystemExit(f"ERROR: unexpected bytes at {hex(off)} for '{desc}': "
-                              f"got {cur.hex()}, expected {old.hex()}. "
-                              f"App version likely doesn't match what this script was derived against.")
+            err(f"Unexpected bytes at {hex(off)} for '{desc}': got {cur.hex()}, expected {old.hex()}. "
+                f"App version likely doesn't match what this script was derived against.")
         entry_data[off:off + len(new)] = new
-        print(f"  patched: {desc}")
+        ok(f"Patched: {desc}")
 
     new_crc = zlib.crc32(bytes(entry_data)) & 0xffffffff
 
     with open(apk_path, "r+b") as f:
         f.seek(data_start)
         f.write(bytes(entry_data))
-        f.seek(info.header_offset + 14)
+        f.seek(zinfo.header_offset + 14)
         f.write(struct.pack("<I", new_crc))
 
     with open(apk_path, "rb") as f:
@@ -271,7 +310,7 @@ def patch_so_in_zip(apk_path, patches):
             break
         pos += rec_len
     if not found:
-        raise SystemExit("ERROR: central directory record not found after patching")
+        err("Central directory record not found after patching")
 
 
 def replace_dex_in_apk(apk_path, entry_name, new_dex_bytes):
@@ -311,7 +350,7 @@ def replace_files_in_apk(apk_path, replacements):
             with open(replacements[item.filename], "rb") as f:
                 new_data = f.read()
             if new_data != data:
-                print(f"  replacing {item.filename}: {len(data)} -> {len(new_data)} bytes")
+                ok(f"Replacing {item.filename}: {len(data)} -> {len(new_data)} bytes")
                 changed += 1
             data = new_data
         zi = zipfile.ZipInfo(item.filename, date_time=item.date_time)
@@ -324,9 +363,7 @@ def replace_files_in_apk(apk_path, replacements):
     os.replace(tmp_path, apk_path)
     missing = set(replacements) - seen
     if missing:
-        print("  WARNING: these files had no matching zip entry (typo / renamed?):")
-        for m in sorted(missing):
-            print(f"    {m}")
+        warn("These files had no matching zip entry (typo / renamed?): " + ", ".join(sorted(missing)))
     return changed
 
 
@@ -378,7 +415,7 @@ def main():
                          "Debug/DevSettings/DevActions/Features/UiKit menu")
     p.add_argument("-R", "--native-res", action="store_true",
                     help="classes6.dex: raise the map's 1080px render-surface cap to 32767, so it "
-                         "renders at true device resolution instead of being downscaled")
+                         "renders at true device resolution instead of being upscaled")
     p.add_argument("-T", "--turn-ease", choices=list(TURN_EASE_CURVES), default=None,
                     help="libsygic.so: navigation-follow camera rotation easing curve "
                          "(unpatched default is a hardcoded linear ease)")
@@ -393,12 +430,19 @@ def main():
     p.add_argument("--all", action="store_true",
                     help="enable -F -D -R -N --turn-ease=decelerate")
     p.add_argument("--keep-temp", action="store_true")
+    p.add_argument("-v", "--verbose", action="store_true",
+                    help="print the full external commands (java, zipalign, apksigner) as they run")
     args = p.parse_args()
+
+    print(BANNER)
+
+    global VERBOSE
+    VERBOSE = args.verbose
 
     if args.keystore is None:
         if not os.path.isfile(DEFAULT_KEYSTORE):
-            raise SystemExit(f"ERROR: --keystore not given and {DEFAULT_KEYSTORE} doesn't exist here -- "
-                              f"run ./generate_keystore.sh first, or pass --keystore explicitly.")
+            err(f"No --keystore given and {DEFAULT_KEYSTORE} doesn't exist here -- "
+                f"run ./generate_keystore.sh first, or pass --keystore explicitly.")
         args.keystore = DEFAULT_KEYSTORE
     if args.ks_alias is None:
         args.ks_alias = DEFAULT_KS_ALIAS
@@ -413,7 +457,7 @@ def main():
     skin_dir = os.path.join(args.skins, "assets", "res", "skin")
     skins_available = os.path.isdir(skin_dir)
     if skins_explicit and not skins_available:
-        raise SystemExit(f"ERROR: {skin_dir} not found")
+        err(f"Directory {skin_dir} not found")
 
     if args.all:
         args.fps_unlock = True
@@ -428,18 +472,20 @@ def main():
             args.turn_ease = "decelerate"
 
     if args.debug_licenses and not args.debug_menu:
-        print("WARNING: -L without -D -- the Licenses item will be patched to appear, but its "
-              "parent Debug menu stays hidden unless it's already unlocked in what you're "
-              "patching on top of, or you add -D too.", file=sys.stderr)
+        warn("Using -L without -D -- the Licenses item will be patched to appear, but its parent Debug menu "
+             "stays hidden unless it's already unlocked in what you're patching on top of, or you add -D too.",
+             file=sys.stderr)
 
     if not any([args.fps_unlock, args.debug_menu, args.native_res, args.turn_ease,
                 args.debug_licenses, args.no_startup_promo, skins_available]):
-        print("Nothing to do -- pick at least one of -F -D -R -T -L -N -S (or --all), or "
-              f"run extract_skins.py to populate ./{DEFAULT_SKINS_DIR}. "
-              "Will still re-sign with the new cert if you proceed.", file=sys.stderr)
+        info(f"Nothing to do -- pick at least one of -F -D -R -T -L -N -S (or --all), or run extract_skins.py "
+             f"to populate ./{DEFAULT_SKINS_DIR}. Will still re-sign with the new cert if you proceed.",
+             file=sys.stderr)
 
-    tmp = tempfile.mkdtemp(prefix="sygic_build_")
-    print(f"working dir: {tmp}")
+    build_tmp_root = os.path.join(HERE, "build", "tmp")
+    os.makedirs(build_tmp_root, exist_ok=True)
+    tmp = tempfile.mkdtemp(prefix="sygic_build_", dir=build_tmp_root)
+    #info(f"Working dir: {tmp}")
     try:
         extract_dir = os.path.join(tmp, "xapk")
         os.makedirs(extract_dir)
@@ -459,13 +505,14 @@ def main():
                                 f"CViewCamera::UpdateRotation curve -> {args.turn_ease}"))
         if so_patches:
             if not arm64_split:
-                raise SystemExit("ERROR: no arm64_v8a split found in this xapk")
-            print(f"patching {arm64_split} ...")
+                err("No arm64_v8a split found in this xapk")
+            step(f"Patching {arm64_split}")
             patch_so_in_zip(os.path.join(extract_dir, arm64_split), so_patches)
 
         # --- dex/smali patches (base apk, classes6.dex) ---
         if args.debug_menu or args.native_res or args.debug_licenses:
-            print("decompiling classes6.dex ...")
+            step("Patching classes6.dex")
+            ok("Decompiling classes6.dex")
             smali_root = os.path.join(tmp, "smali_c6")
             with zipfile.ZipFile(base_path) as zf:
                 dex_bytes = zf.read("classes6.dex")
@@ -488,7 +535,7 @@ def main():
                                    DEBUG_LICENSES_REPL,
                                    "SettingItemsManager.J() returns the built Licenses folder instead of null")
 
-            print("reassembling classes6.dex ...")
+            ok("Reassembling classes6.dex")
             new_dex_path = os.path.join(tmp, "classes6_patched.dex")
             run(["java", "-cp", smali_classpath(SMALI_JAR), "org.jf.smali.Main",
                  "assemble", "-a", "26", "-o", new_dex_path, smali_root])
@@ -498,7 +545,8 @@ def main():
 
         # --- dex/smali patches (base apk, classes2.dex) ---
         if args.no_startup_promo:
-            print("decompiling classes2.dex ...")
+            step("Patching classes2.dex")
+            ok("Decompiling classes2.dex")
             smali_root2 = os.path.join(tmp, "smali_c2")
             with zipfile.ZipFile(base_path) as zf:
                 dex_bytes = zf.read("classes2.dex")
@@ -510,7 +558,7 @@ def main():
 
             patch_promo_dialog(smali_root2)
 
-            print("reassembling classes2.dex ...")
+            ok("Reassembling classes2.dex")
             new_dex_path2 = os.path.join(tmp, "classes2_patched.dex")
             run(["java", "-cp", smali_classpath(SMALI_JAR), "org.jf.smali.Main",
                  "assemble", "-a", "26", "-o", new_dex_path2, smali_root2])
@@ -524,15 +572,15 @@ def main():
             for fname in os.listdir(skin_dir):
                 if fname.endswith((".xml", ".json")):
                     replacements[f"assets/res/skin/{fname}"] = os.path.join(skin_dir, fname)
-            print(f"applying skin overrides from {args.skins} ({len(replacements)} file(s) tracked) ...")
+            step(f"Applying skin overrides from {args.skins} ({len(replacements)} file(s) tracked)")
             changed = replace_files_in_apk(base_path, replacements)
-            print(f"  {changed} skin file(s) actually differed and were applied")
+            info(f"Applied {changed} skin file(s) that actually differed", indent=1)
 
         # --- sign everything with the provided cert ---
         key_pass = args.key_pass or args.ks_pass
         all_apks = [base_path] + [os.path.join(extract_dir, f) for f in split_files]
         for apk in all_apks:
-            print(f"aligning + signing {os.path.basename(apk)} ...")
+            step(f"Aligning + signing {os.path.basename(apk)}")
             try:
                 sign_apk(apk, args.keystore, args.ks_alias, args.ks_pass, key_pass)
             except subprocess.CalledProcessError as e:
@@ -541,10 +589,8 @@ def main():
                 # that failed, and only if we picked the password by default
                 # rather than the caller asking for it specifically.
                 if not ks_pass_explicit and e.cmd and e.cmd[0] == APKSIGNER:
-                    raise SystemExit(
-                        f"\nERROR: signing failed using the default password ({DEFAULT_KS_PASS}) -- "
-                        f"your keystore likely uses a different one. Pass it explicitly with "
-                        f"--ks-pass pass:<yourpassword>.")
+                    err(f"Signing failed using the default password ({DEFAULT_KS_PASS}) -- your keystore likely "
+                        f"uses a different one. Pass it explicitly with --ks-pass pass:<yourpassword>.")
                 raise
 
         # --- fix up manifest.json total_size ---
@@ -556,18 +602,18 @@ def main():
             json.dump(manifest, f, separators=(",", ":"))
 
         # --- repackage ---
-        print(f"packaging {args.output_xapk} ...")
+        step(f"Packaging {args.output_xapk}")
         if os.path.exists(args.output_xapk):
             os.remove(args.output_xapk)
         with zipfile.ZipFile(args.output_xapk, "w", zipfile.ZIP_STORED, allowZip64=True) as zf:
             for f in ["manifest.json", icon, base_file] + split_files:
                 zf.write(os.path.join(extract_dir, f), arcname=f)
 
-        print(f"\ndone -> {args.output_xapk}")
+        step(f"Patching finished successfully! Have a good ride :)")
 
     finally:
         if args.keep_temp:
-            print(f"(kept temp dir: {tmp})")
+            info(f"Kept temp dir: {tmp}")
         else:
             shutil.rmtree(tmp, ignore_errors=True)
 

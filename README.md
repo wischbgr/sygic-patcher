@@ -6,6 +6,8 @@ It's meant for **patching your own legitimately-purchased/licensed copy** for pe
 
 > **Installing the patched `.xapk`** needs an XAPK-aware installer — Android's own installer only handles single `.apk` files. [**Universal Installer**](https://f-droid.org/packages/app.pwhs.universalinstaller/) (F-Droid) is a good free option.
 
+You can stil login with your account to access your license. Sygic seems to be fine with patched APKs as there was no code which for checks signature or hashes.
+
 ## Currently supported version
 
 * **26.4.2-115708 (arm64-v8a)** — [Download from APKPure](https://apkpure.com/de/sygic-gps-navigation-maps-for-mobile/com.sygic.aura/download/26.4.2-115708)
@@ -37,6 +39,7 @@ Finally, I bought a lifetime license with live traffic ages ago. No, I don't wan
 | `-N`, `--no-startup-promo` | `classes2.dex`: Disable the startup webview promo dialog by forcing `ModalManagerImpl.checkShowPromoDialog()` onto its own "nothing to show" path. That check has no license/premium gate at all, so it nags lifetime/premium accounts exactly like free ones. |
 | `-S DIR`, `--skins DIR` | Splices in any `.xml`/`.json` files under `DIR/assets/res/skin/` that differ from the originals — e.g. hand-edited night-mode map color tables. Defaults to `./skin_override` (see `extract_skins.py` below) and is applied automatically whenever that directory exists; pass `-S` explicitly only to point elsewhere. |
 | `--all` | Enables `-F -D -R -N` with `--turn-ease=decelerate` (not `-L`). |
+| `-v`, `--verbose` | Print the full external commands (`java`, `zipalign`, `apksigner`) as they run. Off by default. |
 
 Every patch asserts the expected original bytes/text before writing anything and aborts on a mismatch, so running it against a different app version fails safely instead of producing a broken build.
 

@@ -26,6 +26,15 @@
 # ("changeit", the standard Java placeholder) rather than prompted for.
 set -euo pipefail
 
+# ---------------------------------------------------------------------------
+# Output helpers -- [+] a step/action, [i] informational, [-] error
+# ---------------------------------------------------------------------------
+_pad() { local i; for ((i = 0; i < "$1"; i++)); do printf '    '; done; }
+step() { echo "[+] $1"; }                                  # top-level step
+ok()   { echo "$(_pad "${2:-1}")[+] $1"; }                  # sub-action, default indent 1
+info() { echo "$(_pad "${2:-0}")[i] $1"; }                  # informational, default indent 0
+err()  { echo "[-] $1" >&2; }                               # error, to stderr
+
 OUT="sygic-patcher.jks"
 ALIAS="sygic-patcher"
 DAYS=9125
@@ -58,22 +67,22 @@ while [ $# -gt 0 ]; do
         -p|--pass) PASS="$2"; shift 2 ;;
         -f|--force) FORCE=1; shift ;;
         -h|--help) usage; exit 0 ;;
-        *) echo "unknown argument: $1" >&2; usage; exit 1 ;;
+        *) err "Unknown argument: $1"; usage; exit 1 ;;
     esac
 done
 
 if ! command -v keytool >/dev/null 2>&1; then
-    echo "ERROR: keytool not found on PATH (it ships with the JDK, not just the JRE)." >&2
+    err "No keytool on PATH (it ships with the JDK, not just the JRE)."
     exit 1
 fi
 
 if [ -e "$OUT" ] && [ "$FORCE" -ne 1 ]; then
-    echo "ERROR: $OUT already exists. Pass -f/--force to overwrite, or pick a different -o." >&2
+    err "Keystore $OUT already exists. Pass -f/--force to overwrite, or pick a different -o."
     exit 1
 fi
 
 if [ "${#C}" -ne 2 ]; then
-    echo "ERROR: --c must be a 2-letter country code (got '$C')." >&2
+    err "Flag --c must be a 2-letter country code (got '$C')."
     exit 1
 fi
 
@@ -85,11 +94,12 @@ escape_dn_value() {
 
 DNAME="CN=$(escape_dn_value "$CN"), OU=$(escape_dn_value "$OU"), O=$(escape_dn_value "$O"), L=$(escape_dn_value "$L"), ST=$(escape_dn_value "$ST"), C=$(escape_dn_value "$C")"
 
-echo "Keystore:   $OUT"
-echo "Alias:      $ALIAS"
-echo "Key:        RSA $KEYSIZE, valid $DAYS days (~$((DAYS / 365)) years)"
-echo "Subject DN: $DNAME"
-echo "Password:   $PASS"
+step "Generating keystore"
+info "Keystore:   $OUT" 1
+info "Alias:      $ALIAS" 1
+info "Key:        RSA $KEYSIZE, valid $DAYS days (~$((DAYS / 365)) years)" 1
+info "Subject DN: $DNAME" 1
+info "Password:   $PASS" 1
 echo
 
 keytool -genkeypair -v \
@@ -103,12 +113,11 @@ keytool -genkeypair -v \
     -storepass "$PASS" -keypass "$PASS"
 
 echo
-echo "done -> $OUT"
+info "Done -> $OUT"
 echo
-echo "Use it with build_patched_xapk.py like:"
-echo "  python3 build_patched_xapk.py Sygic.xapk Sygic_patched.xapk \\"
-echo "      --keystore $OUT --ks-alias $ALIAS --ks-pass pass:$PASS \\"
-echo "      --all -S my_skin_edits"
+info "Use it with build_patched_xapk.py like:"
+echo "        python3 build_patched_xapk.py Sygic.xapk Sygic_patched.xapk \\"
+echo "            --keystore $OUT --ks-alias $ALIAS --ks-pass pass:$PASS \\"
+echo "            --all -S my_skin_edits"
 echo
-echo "Keep $OUT around -- it's what lets you re-sign future patched builds so"
-echo "Android treats them as updates to the same locally-signed app."
+info "Keep $OUT around -- it's what lets you re-sign future patched builds so Android treats them as updates to the same locally-signed app."

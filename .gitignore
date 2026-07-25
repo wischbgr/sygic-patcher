@@ -12,6 +12,7 @@ my_skin_edits/
 decompiled/
 module/*.apk
 build/output/
+build/tmp/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
