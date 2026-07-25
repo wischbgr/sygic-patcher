@@ -4,71 +4,15 @@
 # dependencies = []
 # ///
 """
-Build a patched, signed Sygic .xapk from the original.
+Build a patched, signed Sygic .xapk from the original. See README.md for
+the full picture; flags below cover what each patch does.
 
-All patches below were derived against com.sygic.aura 26.4.2-115708 (arm64-v8a).
-Every binary/smali patch asserts the expected original bytes/text before writing
-anything, and aborts loudly if they don't match -- so running this against a
-different app version will fail safely (offsets/instructions likely shifted)
-rather than silently producing a broken build. If Sygic ships an update, the
-constants near the top of this file are what need re-deriving.
-
-Usage:
-  python3 build_patched_xapk.py INPUT.xapk OUTPUT.xapk \\
-      [--keystore KEYSTORE.jks] [--ks-alias ALIAS] \\
-      [--ks-pass pass:XXXX] [--key-pass pass:XXXX] \\
-      [-F] [-D] [-R] [-T {linear,accelerate,decelerate,accel_decel,bounce}] \\
-      [-L] [-N] [-S SKIN_DIR] [--all] [--keep-temp]
-
---keystore/--ks-alias/--ks-pass all default to what generate_keystore.sh
-produces with no arguments (./sygic-patcher.jks, alias sygic-patcher,
-password changeit) -- run that script once with no arguments and every flag
-here can be omitted. --keystore only falls back silently if the default file
-actually exists; otherwise it's an error telling you to generate one.
-
-Toggles (all off by default; --all turns everything on except -L, with turn-ease=decelerate):
-  -F, --fps-unlock        libsygic.so: CSDKMapView fps-override default
-                           -10.0 -> +120.0 (BALANCED -> PERFORMANCE)
-  -D, --debug-menu        classes6.dex: nop out FEATURE_DEBUG_MENU.isActive()
-                           check in SettingItemsManager.E(), exposing the
-                           internal Debug/DevSettings/DevActions/Features/UiKit
-                           menu unconditionally
-  -R, --native-res        classes6.dex: raise LowGL.MAX_SHORTER_DIMENSION's
-                           1080px render-surface cap to 32767 (both call sites),
-                           so the map renders at true device resolution instead
-                           of being downscaled on >1080px-shorter-side screens
-  -T, --turn-ease CURVE   libsygic.so: CViewCamera::UpdateRotation's hardcoded
-                           InterpolatorForCurve(...,0) call -> (...,CURVE), so
-                           navigation-follow camera rotation eases instead of
-                           being linear. CURVE in: linear, accelerate,
-                           decelerate, accel_decel, bounce
-  -L, --debug-licenses    classes6.dex: SettingItemsManager.J() builds the
-                           "Licenses" folder (inside Debug) and then discards
-                           it, unconditionally returning null -- not gated by
-                           any feature flag, just dead code. Makes it return
-                           the built folder instead. Requires -D (or the Debug
-                           menu already unlocked some other way) to be reachable
-                           at all, since it's a sub-item of that menu. NOTE: the
-                           screen it exposes is permanently empty (its
-                           ViewModel is an unfinished stub with no data
-                           source) -- included for completeness, not useful.
-  -N, --no-startup-promo  classes2.dex: ModalManagerImpl.checkShowPromoDialog()
-                           (uX2.D0()) forced onto its own existing "nothing to
-                           show" early-return path, disabling the startup
-                           webview promo dialog ("buy Premium Plus" etc). That
-                           check has no license/premium gate at all, so it
-                           fires for lifetime/premium accounts same as free.
-  -S, --skins DIR          splice in any .xml/.json files under
-                           DIR/assets/res/skin/ that differ from the originals
-                           (day/night skin color tables etc.) Defaults to
-                           ./skin_override (see extract_skins.py) and is applied
-                           automatically whenever that directory exists --
-                           pass -S explicitly only to point elsewhere. If a
-                           DIR is given explicitly and doesn't exist, that's
-                           an error rather than a silent skip.
-
-Example (after running ./generate_keystore.sh once):
-  python3 build_patched_xapk.py Sygic.xapk Sygic_patched.xapk --all
+All patches were derived against com.sygic.aura 26.4.2-115708 (arm64-v8a) and
+are version-pinned: every binary/smali patch asserts the expected original
+bytes/text before writing anything and aborts loudly on a mismatch, so a
+different app version fails safely instead of producing a broken build. If
+Sygic ships an update, the constants near the top of this file are what need
+re-deriving.
 """
 
 import argparse
@@ -417,7 +361,7 @@ def find_base_and_splits(extract_dir):
 # ---------------------------------------------------------------------------
 
 def main():
-    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("input_xapk")
     p.add_argument("output_xapk")
     p.add_argument("--keystore", default=None,
@@ -426,10 +370,18 @@ def main():
     p.add_argument("--ks-pass", default=None, help=f"e.g. pass:mypassword (default: {DEFAULT_KS_PASS}, "
                                                      f"matching generate_keystore.sh's default)")
     p.add_argument("--key-pass", default=None, help="defaults to --ks-pass if omitted")
-    p.add_argument("-F", "--fps-unlock", action="store_true")
-    p.add_argument("-D", "--debug-menu", action="store_true")
-    p.add_argument("-R", "--native-res", action="store_true")
-    p.add_argument("-T", "--turn-ease", choices=list(TURN_EASE_CURVES), default=None)
+    p.add_argument("-F", "--fps-unlock", action="store_true",
+                    help="libsygic.so: raise the map renderer's FPS-override cap from -10.0 to "
+                         "+120.0, switching from throttled BALANCED mode to PERFORMANCE")
+    p.add_argument("-D", "--debug-menu", action="store_true",
+                    help="classes6.dex: unconditionally expose the internal "
+                         "Debug/DevSettings/DevActions/Features/UiKit menu")
+    p.add_argument("-R", "--native-res", action="store_true",
+                    help="classes6.dex: raise the map's 1080px render-surface cap to 32767, so it "
+                         "renders at true device resolution instead of being downscaled")
+    p.add_argument("-T", "--turn-ease", choices=list(TURN_EASE_CURVES), default=None,
+                    help="libsygic.so: navigation-follow camera rotation easing curve "
+                         "(unpatched default is a hardcoded linear ease)")
     p.add_argument("-L", "--debug-licenses", action="store_true",
                     help="requires -D (or the Debug menu already unlocked) to be reachable")
     p.add_argument("-N", "--no-startup-promo", action="store_true",
@@ -439,7 +391,7 @@ def main():
                     help="directory containing assets/res/skin/*.xml overrides "
                          f"(default: {DEFAULT_SKINS_DIR}, used automatically if it exists)")
     p.add_argument("--all", action="store_true",
-                    help="enable -F -D -R -N --turn-ease=decelerate (not -L)")
+                    help="enable -F -D -R -N --turn-ease=decelerate")
     p.add_argument("--keep-temp", action="store_true")
     args = p.parse_args()
 

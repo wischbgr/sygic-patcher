@@ -7,6 +7,7 @@
 #   make extract   extract_skins.py     -- ./skin_override/ for skin edits
 #   make patchall  build_patched_xapk.py --all
 #   make all       deps + extract + patchall (keystore is a prerequisite of patchall)
+#                  -- also the default: bare `make` == `make all`
 #
 # NOTE: XAPK auto-detection via $(wildcard) doesn't cope with filenames
 # containing spaces (a GNU Make limitation, not this Makefile's) -- rename
@@ -28,6 +29,9 @@ SKIN_MARKER := skin_override/assets/res/skin/skin_config.xml
 OUTPUT := $(basename $(XAPK))_patched.xapk
 
 .PHONY: deps keystore extract patchall all
+
+# Bare `make` (no target) runs `make all`.
+.DEFAULT_GOAL := all
 
 deps:
 	python3 fetch_tools.py
