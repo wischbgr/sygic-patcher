@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="utf-8"?>
+<skin>
+    <map>
+        <textures>
+            <object name="space" type="Library::CTexture">
+                <texture_filepath value="textures/space_black.png"/>
+                <render_settings>
+                    <filtering value="Library::C3DTypes::TfqNone"/>
+                    <wrap_s value="Library::C3DTypes::TwmRepeat"/>
+                    <wrap_t value="Library::C3DTypes::TwmRepeat"/>
+                </render_settings>
+            </object>
+        </textures>
+        <textstyles>
+            <object name="textstyle.street_big" type="Library::CTextStyle">
+                <font value="map/fonts/street.big"/>
+                <color value="0xaec1cdff"/>
+                <color_border value="0x000000ff"/>
+                <text_wrap value="Library::ETextWrap::Singleline"/>
+                <text_align value="Library::ETextAlign::AlignCenter"/>
+                <border_size value="2.500000"/>
+            </object>
+            <object name="textstyle.street" type="Library::CTextStyle">
+                <font value="map/fonts/street.big"/>
+                <color value="0xaec1cdff"/>
+                <color_border value="0x000000ff"/>
+                <text_wrap value="Library::ETextWrap::Singleline"/>
+                <text_align value="Library::ETextAlign::AlignCenter"/>
+                <border_size value="2.500000"/>
+            </object>
+            <object name="textstyle.street_small" type="Library::CTextStyle">
+                <font value="map/fonts/street.small"/>
+                <color value="0xaec1cdff"/>
+                <color_border value="0x000000ff"/>
+                <text_wrap value="Library::ETextWrap::Singleline"/>
+                <text_align value="Library::ETextAlign::AlignCenter"/>
+                <border_size value="2.500000"/>
+            </object>
+            <object name="textstyle.street_x_small" type="Library::CTextStyle">
+                <font value="map/fonts/street.small"/>
+                <color value="0xaec1cdff"/>
+                <color_border value="0x01000066"/>
+                <text_wrap value="Library::ETextWrap::Singleline"/>
+                <text_align value="Library::ETextAlign::AlignCenter"/>
+                <border_size value="2.500000"/>
+            </object>
+            <object name="city.city6" type="Library::CTextStyle">
+                <font value="map/fonts/bold.distance.20"/>
+                <color value="0xaec1cdff"/>
+                <color_border value="0x000000ff"/>
+                <text_wrap value="Library::ETextWrap::Multiline"/>
+                <text_align value="Library::ETextAlign::AlignCenter"/>
+                <border_size value="3.000000"/>
+            </object>
+            <object name="city.city5" type="Library::CTextStyle">
+                <font value="map/fonts/bold.distance.24"/>
+                <color value="0xaec1cdff"/>
+                <color_border value="0x000000ff"/>
+                <text_wrap value="Library::ETextWrap::Multiline"/>
+                <text_align value="Library::ETextAlign::AlignCenter"/>
+                <border_size value="2.500000"/>
+            </object>
+            <object name="city.city4" type="Library::CTextStyle">
+                <font value="map/fonts/bold.distance.18"/>
+                <color value="0xaec1cdff"/>
+                <color_border value="0x000000ff"/>
+                <text_wrap value="Library::ETextWrap::Multiline"/>
+                <text_align value="Library::ETextAlign::AlignCenter"/>
+                <border_size value="2.500000"/>
+            </object>
+            <object name="city.city3" type="Library::CTextStyle">
+                <font value="map/fonts/bold.distance.14"/>
+                <color value="0xaec1cdff"/>
+                <color_border value="0x000000ff"/>
+                <text_wrap value="Library::ETextWrap::Multiline"/>
+                <text_align value="Library::ETextAlign::AlignCenter"/>
+                <border_size value="2.500000"/>
+            </object>
+            <object name="city.city2" type="Library::CTextStyle">
+                <font value="map/fonts/regular.distance.14"/>
+                <color value="0xaec1cdff"/>
+                <color_border value="0x000000ff"/>
+                <text_wrap value="Library::ETextWrap::Multiline"/>
+                <text_align value="Library::ETextAlign::AlignCenter"/>
+                <border_size value="2.500000"/>
+            </object>
+            <object name="city.city1" type="Library::CTextStyle">
+                <font value="map/fonts/regular.distance.12"/>
+                <color value="0xaec1cdff"/>
+                <color_border value="0x000000ff"/>
+                <text_wrap value="Library::ETextWrap::Multiline"/>
+                <text_align value="Library::ETextAlign::AlignCenter"/>
+                <border_size value="2.500000"/>
+            </object>
+            <object name="city.city0" type="Library::CTextStyle">
+                <font value="map/fonts/regular.distance.12"/>
+                <color value="0xaec1cdff"/>
+                <color_border value="0x01000066"/>
+                <text_wrap value="Library::ETextWrap::Multiline"/>
+                <text_align value="Library::ETextAlign::AlignCenter"/>
+                <border_size value="2.500000"/>
+            </object>
+            <object name="city.water" type="Library::CTextStyle">
+                <font value="map/fonts/italic.distance.10"/>
+                <color value="0xaec1cdff"/>
+                <color_border value="0x2d6c9411"/>
+                <text_wrap value="Library::ETextWrap::Multiline"/>
+                <text_align value="Library::ETextAlign::AlignCenter"/>
+                <border_size value="2.500000"/>
+            </object>
+            <object name="city.wood" type="Library::CTextStyle">
+                <font value="map/fonts/italic.distance.10"/>
+                <color value="0xffffffff"/>
+                <color_border value="0x000000ff"/>
+                <text_wrap value="Library::ETextWrap::Singleline"/>
+                <text_align value="Library::ETextAlign::AlignCenter"/>
+                <border_size value="2.500000"/>
+            </object>
+            <object name="city.other" type="Library::CTextStyle">
+                <font value="map/fonts/italic.distance.10"/>
+                <color value="0xaec1cdff"/>
+                <color_border value="0x000000ff"/>
+                <text_wrap value="Library::ETextWrap::Multiline"/>
+                <text_align value="Library::ETextAlign::AlignCenter"/>
+                <border_size value="2.500000"/>
+            </object>
+            <object name="city.part" type="Library::CTextStyle">
+                <font value="map/fonts/bold.distance.12"/>
+                <color value="0xaec1cddd"/>
+                <color_border value="0x000000ff"/>
+                <text_wrap value="Library::ETextWrap::Multiline"/>
+                <text_align value="Library::ETextAlign::AlignCenter"/>
+                <border_size value="2.500000"/>
+            </object>
+            <object name="city.province" type="Library::CTextStyle">
+                <font value="map/fonts/regular.distance.20"/>
+                <border_size value="1.500000"/>
+                <color value="0xffffffff"/>
+                <color_border value="0x000000ff"/>
+                <text_wrap value="Library::ETextWrap::Multiline"/>
+                <text_align value="Library::ETextAlign::AlignCenter"/>
+            </object>
+            <object name="city.country" type="Library::CTextStyle">
+                <font value="map/fonts/bold.distance.28"/>
+                <border_size value="1.5"/>
+                <color value="0x7292a7aa"/>
+                <color_border value="0x000000ff"/>
+                <text_wrap value="Library::ETextWrap::Multiline"/>
+                <text_align value="Library::ETextAlign::AlignCenter"/>
+            </object>
+            <object name="city.ocean" type="Library::CTextStyle">
+                <font value="map/fonts/regular.distance.20"/>
+                <color value="0x466071ff"/>
+                <color_border value="0x000000ff"/>
+                <text_wrap value="Library::ETextWrap::Singleline"/>
+                <text_align value="Library::ETextAlign::AlignCenter"/>
+                <border_size value="0"/>
+            </object>
+            <object name="textstyle.addresspoints" type="Library::CTextStyle">
+                <font value="map/fonts/regular.12"/>
+                <color value="0x7e9bafff"/>
+                <color_border value="0x000000ff"/>
+                <text_wrap value="Library::ETextWrap::Singleline"/>
+                <text_align value="Library::ETextAlign::AlignCenter"/>
+                <border_size value="2.500000"/>
+            </object>
+            <object name="textstyle.logisticInfo" type="Library::CTextStyle">
+                <font value="map/fonts/bold.12"/>
+                <color value="0x000000ff"/>
+                <color_border value="0xffffff00"/>
+                <text_wrap value="Library::ETextWrap::Singleline"/>
+                <text_align value="Library::ETextAlign::AlignCenter"/>
+                <border_size value="0.00000"/>
+            </object>
+        </textstyles>
+        <route>
+                <dimensions>
+                    <object name="route.border.size" type="Library::CFloatResource">
+                        <float value="0.150000"/>
+                    </object>
+                    <object name="alt.border.size" type="Library::CFloatResource">
+                        <float value="0.120000"/>
+                    </object>
+                    <object name="traffic.border.size" type="Library::CFloatResource">
+                        <float value="0.120000"/>
+                    </object>
+                </dimensions>
+            <colors>
+                <object name="color.route" type="Library::CColor">
+                    <color value="0x23A8F3FF"/>
+                </object>
+                <object name="color.route.border" type="Library::CColor">
+                    <color value="0x000000ff"/>
+                </object>
+                <object name="color.route.alt" type="Library::CColor">
+                    <color value="0xAED7FFFF"/>
+                </object>
+                <object name="color.route.alt.border" type="Library::CColor">
+                    <color value="0x000000FF"/>
+                </object>
+            </colors>
+        </route>
+        <colors>
+            <!-- areas -->
+            <object name="colors.area" type="CAreaColors">
+                <area_colors size="36">
+                    <data>
+                        <key value="EAreaColor::City"/>
+                        <value>
+<!--                             <color value="0x525457ff"/> -->
+                            <color value="0x2c343aff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Green"/>
+                        <value>
+<!--                             <color value="0x426658ff"/> -->
+                            <color value="0x193428ff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Island"/>
+                        <value>
+                            <color value="0xf1dbdfff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Water"/>
+                        <value>
+<!--                             <color value="0x293F54ff"/> -->
+                            <color value="0x204160ff"/>
+
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Ocean"/>
+                        <value>
+<!--                             <color value="0x293F54ff"/> -->
+                            <color value="0x204160ff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Industrial"/>
+                        <value>
+                            <color value="0x474b51ff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Pedestrian"/>
+                        <value>
+                            <color value="0x45535Eff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::EnclosedTraffic"/>
+                        <value>
+                            <color value="0x411a21ff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Airport"/>
+                        <value>
+                            <color value="0x474757ff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Cemetery"/>
+                        <value>
+                            <color value="0x505255ff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Entertaiment"/>
+                        <value>
+                            <color value="0x474b51ff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Golf"/>
+                        <value>
+<!--                             <color value="0x426658ff"/> -->
+                            <color value="0x193428ff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Hospital"/>
+                        <value>
+                            <color value="0x505255ff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Library"/>
+                        <value>
+                            <color value="0x474b51ff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Museum"/>
+                        <value>
+                            <color value="0x474b51ff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Park"/>
+                        <value>
+<!--                             <color value="0x426658ff"/> -->
+                            <color value="0x193428ff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Parking"/>
+                        <value>
+                            <color value="0x3d4d53ff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Paved"/>
+                        <value>
+                            <color value="0x3E5356ff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Petrol"/>
+                        <value>
+                            <color value="0x3d4d53ff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Railway"/>
+                        <value>
+                            <color value="0x343f47ff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Sand"/>
+                        <value>
+                            <color value="0x636348ff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Shopping"/>
+                        <value>
+                            <color value="0x474b51ff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Sport"/>
+                        <value>
+                            <color value="0x474b51ff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Swampland"/>
+                        <value>
+                            <color value="0x3E5356ff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Swimming"/>
+                        <value>
+<!--                             <color value="0x293F54ff"/> -->
+                            <color value="0x204160ff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::University"/>
+                        <value>
+                            <color value="0x505255ff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Worship"/>
+                        <value>
+                            <color value="0x3a2a39ff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Aircraft_road"/>
+                        <value>
+                            <color value="0x3e3e4cff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Croopland"/>
+                        <value>
+                            <color value="0xc0e1bfff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Broadleaved"/>
+                        <value>
+                            <color value="0xc0e1bfff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Needleleaved"/>
+                        <value>
+                            <color value="0xc0e1bfff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Grassland"/>
+                        <value>
+                            <color value="0x5c7d6eff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Savana"/>
+                        <value>
+                            <color value="0xf4eecbff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Bare"/>
+                        <value>
+                            <color value="0x45535Eff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Water_shp"/>
+                        <value>
+                            <color value="0x1c262dff"/>
+                        </value>
+                    </data>
+                    <data>
+                        <key value="EAreaColor::Ice"/>
+                        <value>
+                            <color value="0xffffffff"/>
+                        </value>
+                    </data>
+                </area_colors>
+            </object>
+        </colors>
+        <roads>
+            <functions>
+                <!-- road & border colors  -->
+                <!-- definition value before ~ means the zoom level, where 1 is the highest and larger number is the deepest -->
+                <!-- definition value after ~ means the background color of the line and second value after ~ , means the border color of the line -->
+                <object name="function.colors_motorways" type="CLinearSegmentsThreeColorsFunction">
+                    <definition type="DtCustom::syl::string" value="4 ~ 0xBD7150ff, 0x4F2412ff, 0x4F2412ff; 5 ~ 0xBD7150ff, 0x4F2412ff, 0x4F2412ff; 11.9 ~ 0xBD7150ff, 0x4F2412ff, 0x4F2412ff; 12.1 ~ 0xBD7150ff, 0x4F2412ff, 0x4F2412ff"/>
+                </object>
+                <object name="function.colors_main" type="CLinearSegmentsThreeColorsFunction">
+                    <definition type="DtCustom::syl::string" value="5 ~ 0x88704cff, 0x42331Dff, 0x42331Dff; 6 ~ 0x88704cff, 0x42331Dff, 0x42331Dff; 11.9 ~ 0x88704cff, 0x42331Dff, 0x42331Dff; 12.1 ~ 0x88704cff, 0x42331Dff, 0x42331Dff"/>
+                </object>
+                <object name="function.colors_major" type="CLinearSegmentsThreeColorsFunction">
+                    <definition type="DtCustom::syl::string" value="5 ~ 0x88704cff, 0x42331Dff, 0x42331Dff; 6 ~ 0x88704cff, 0x42331Dff, 0x42331Dff; 11.9 ~ 0x88704cff, 0x42331Dff, 0x42331Dff; 12.1 ~ 0x88704cff, 0x42331Dff, 0x42331Dff"/>
+                </object>
+                <object name="function.colors_secondary" type="CLinearSegmentsThreeColorsFunction">
+                    <definition value="6 ~ 0x353b40ff, 0x212629ff, 0x212629ff; 14 ~ 0x353b40ff, 0x212629ff, 0x212629ff; 14.1 ~ 0x353b40ff, 0x212629ff, 0x212629ff"/>
+                </object>
+                <object name="function.colors_connecting" type="CLinearSegmentsThreeColorsFunction">
+                    <definition value="6 ~ 0x353b40ff, 0x212629ff, 0x212629ff; 16 ~ 0x353b40ff, 0x212629ff, 0x212629ff; 16.1 ~ 0x353b40ff, 0x212629ff, 0x212629ff"/>
+                </object>
+                <object name="function.colors_high_importance" type="CLinearSegmentsThreeColorsFunction">
+                    <definition value="6 ~ 0x353b40ff, 0x212629ff, 0x212629ff; 16 ~ 0x353b40ff, 0x212629ff, 0x212629ff; 16.1 ~ 0x353b40ff, 0x212629ff, 0x212629ff"/>
+                </object>
+                <object name="function.colors_local" type="CLinearSegmentsThreeColorsFunction">
+                    <definition value="6 ~ 0x353b40ff, 0x212629ff, 0x212629ff"/>
+                </object>
+                <object name="function.colors_pedestrian" type="CLinearSegmentsThreeColorsFunction">
+                    <definition type="DtCustom::syl::string" value="10 ~ 0x5C4040ff, 0x332222ff, 0x332222ff"/>
+                </object>
+                <object name="function.colors_ferry" type="CLinearSegmentsThreeColorsFunction">
+                    <definition value="10 ~ 0x87d8ffff, 0x87d8ffff, 0x87d8ffff; 12 ~ 0x87d8ffff, 0x87d8ffff, 0x87d8ffff; 16 ~ 0x87d8ffff, 0x6FBBE2ff, 0x6FBBE2ff"/>
+                </object>
+                <object name="function.colors_railway" type="CLinearSegmentsThreeColorsFunction">
+                    <definition value="10 ~ 0x000000ff, 0x000000ff, 0x444444FF; 15 ~ 0x000000ff, 0x000000ff, 0x444444FF; 18 ~ 0x000000ff, 0x000000ff, 0x444444FF"/>
+                </object>
+            </functions>
+            <object name="color.prohibited_road" type="Library::CColor">
+                <color type="DtBase::uint32_t" value="0x5C4040ff"/>
+            </object>
+            <object name="color.prohibited_road_border" type="Library::CColor">
+                <color type="DtBase::uint32_t" value="0x5C4040ff"/>
+            </object>
+            <object name="color.prohibited_road_mask" type="Library::CColor">
+                <color type="DtBase::uint32_t" value="0x332222ff"/>
+            </object>
+        </roads>
+        <traffic>
+            <colors>
+                <object name="color.traffic.closed" type="Library::CColor">
+                    <color value="0x171c26ff"/>
+                </object>
+                <object name="color.traffic.closed.border" type="Library::CColor">
+                    <color value="0x000000ff"/>
+                </object>
+            </colors>
+        </traffic>
+      	<borders>
+            <functions>
+                <!-- road & border colors -->
+                <object name="function.colors" type="CLinearSegmentsThreeColorsFunction">
+                    <definition value="4 ~ 0x000000cc, 0x000000cc, 0x000000cc; 9 ~ 0x000000cc, 0x000000cc, 0x000000cc; 10 ~ 0x000000cc, 0x000000cc, 0x000000cc"/>
+                </object>
+            </functions>
+        </borders>
+    </map>
+</skin>
