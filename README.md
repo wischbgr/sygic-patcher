@@ -8,9 +8,16 @@ It's meant for **patching your own legitimately-purchased/licensed copy** for pe
 
 You can stil login with your account to access your license. Sygic seems to be fine with patched APKs as there was no code which for checks signature or hashes.
 
-## Currently supported version
+## Tested versions (arm64-v8a)
 
-* **26.4.2-115708 (arm64-v8a)** — [Download from APKPure](https://apkpure.com/de/sygic-gps-navigation-maps-for-mobile/com.sygic.aura/download/26.4.2-115708)
+All patches were originally derived against **26.4.2-115708**, but the update-resistant search logic (see below) has been confirmed working on the following versions:
+
+* [**26.4.2-115708**](https://apkpure.com/de/sygic-gps-navigation-maps-for-mobile/com.sygic.aura/download/26.4.2-115708)
+* [**26.4.1-114499**](https://apkpure.com/de/sygic-gps-navigation-maps-for-mobile/com.sygic.aura/download/26.4.1-114499)
+* [**26.3.2-112577**](https://apkpure.com/de/sygic-gps-navigation-maps-for-mobile/com.sygic.aura/download/26.3.2-112577)
+* [**26.2.0-108257**](https://apkpure.com/de/sygic-gps-navigation-maps-for-mobile/com.sygic.aura/download/26.2.0-108257)
+
+Newer versions might work too but they haven't been tested.
 
 ## About
 I highly prefer Sygic's approach to driver-centered usability and UI design over Google Maps and always liked the smooth navigation experience it provided. However, a few years ago (anything after Version 18, I guess) they removed the **Battery Management** feature, which allowed switching between *OPTIMIZED* and *PERFORMANCE* mode. What *OPTIMIZED* effectively does is constantly change the framerate of the natively rendered OpenGL view to **15fps** during slow movement and boost it to max (**60fps or 120fps**) during faster camera movements. In reality, this results in a noticeably choppy and inconsistent experience, which makes your high-end phone look like it can't handle simple navigation apps.
@@ -41,7 +48,9 @@ Finally, I bought a lifetime license with live traffic ages ago. No, I don't wan
 | `--all` | Enables `-F -D -R -N` with `--turn-ease=decelerate` (not `-L`). |
 | `-v`, `--verbose` | Print the full external commands (`java`, `zipalign`, `apksigner`) as they run. Off by default. |
 
-Every patch asserts the expected original bytes/text before writing anything and aborts on a mismatch, so running it against a different app version fails safely instead of producing a broken build.
+Every patch asserts the expected original bytes/text before writing anything and aborts on a mismatch, so running it against a different app version fails safely instead of producing a broken build. Every patch also has a bit of built-in update resistance: rather than trusting a fixed offset or file path from the version this was derived against, each one locates its target fresh by searching for whatever about it stays stable across versions (surrounding bytes, a field name, a debug string) instead of the volatile parts (exact byte offsets, obfuscated identifiers) — but only when that search is unambiguous, since guessing wrong is worse than not patching at all. This extends to *which* `classesN.dex` a given class lives in: multidex sharding isn't stable across releases either, so nothing is hardcoded to a specific dex file — each smali patch is independently resolved to whichever dex actually defines its target.
+
+If a patch still can't find its target, it's not necessarily fatal: when run from a terminal, it asks whether to skip just that one patch and keep going with the rest of the build. Declining, or running non-interactively, aborts the whole build as before — skipping is opt-in, never a silent default.
 
 ## Requirements
 
