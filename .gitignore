@@ -4,6 +4,7 @@
 *.xapk
 *.jks
 *.keystore
+*.zip
 /deps/
 skin_override/
 skin_*/

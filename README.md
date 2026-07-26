@@ -58,7 +58,7 @@ If a target still can't be found, it's not fatal: run from a terminal, you're as
 - **Optional install:** `zipalign`/`apksigner` (`sudo apt install zipalign apksigner` on Debian/Ubuntu, or your distro's equivalent) — used automatically from `PATH` if present, skipping the download below.
 - **Downloaded automatically** into `./deps/` by `./fetch_tools.py` (or `make deps`), checksum-verified, skipping anything already available: [smali/baksmali](https://github.com/JesusFreke/smali) 2.5.2 + runtime deps from Maven Central (always, no OS package exists), and `zipalign`/`apksigner` as a fallback if not found above.
 - **Your own signing keystore** — generate one with `./generate_keystore.sh` (see below), or `keytool -genkeypair ...` yourself. **Never commit this.**
-- No `pip install` needed for anything — all three scripts are standard-library-only Python; `pyproject.toml`/`uv.lock` just let you `uv run script.py` if you prefer.
+- No `pip install` needed for anything — all four Python scripts are standard-library-only; `pyproject.toml`/`uv.lock` just let you `uv run script.py` if you prefer.
 
 Override any tool location via `ZIPALIGN`/`APKSIGNER`/`SMALI_JAR`/`BAKSMALI_JAR`/`SMALI_LIBS_DIR` env vars; otherwise everything defaults to `./deps/` or `PATH` as above.
 
@@ -79,10 +79,11 @@ Place your unpatched Sygic `.xapk` in the current directory and run `make` (or `
 | `make deps` | `fetch_tools.py` |
 | `make keystore` | `generate_keystore.sh`, if `sygic-patcher.jks` doesn't exist yet |
 | `make extract` | `extract_skins.py`, if `skin_override/` doesn't exist yet |
-| `make patchall` | `deps`, then `build_patched_xapk.py <xapk> <name>_patched.xapk --all` |
+| `make patchall` | `deps`, then `build_patched_xapk.py <xapk> <name>_patched.xapk --all` (asks before overwriting an existing output) |
+| `make module` | `patchall`, then `build_apatch_module.py` on its output — see [APatch module](#apatch-module-module) below |
 | `make all` | `deps` + `extract` + `patchall` (pulls in `keystore` too) — the default, same as bare `make` |
 
-Re-running `make all` is a fast no-op once the output exists — delete what you want regenerated to force a rebuild. `--all` is hardcoded here; for individual flags or a custom `-S` directory, use the scripts directly (below).
+`--all` is hardcoded here; for individual flags or a custom `-S` directory, use the scripts directly (below).
 
 ### Manual
 
@@ -124,7 +125,12 @@ Both scripts default to `./skin_override`; pass a directory explicitly to either
 
 An alternative to reinstalling: `module/module.prop` + `module/service.sh` bind-mount patched APKs over the live install paths at boot (via [APatch](https://github.com/bmax121/APatch), a rooted Magisk-alternative), leaving the original Play Store install/signature untouched. The service script waits for `pm` to come up, resolves the installed paths via `pm path com.sygic.aura`, and bind-mounts your patched `base.apk` / `arm64_v8a` split over them.
 
-To use it: run `build_patched_xapk.py`, then copy the patched `com.sygic.aura.apk` (base) and `config.arm64_v8a.apk` → `split_config.arm64_v8a.apk` next to `module.prop`/`service.sh`, zip the four files together, and flash the zip as an APatch module. The APK binaries aren't included in this repo — you generate them yourself.
+```sh
+python3 build_patched_xapk.py Sygic.xapk Sygic_patched.xapk --all
+python3 build_apatch_module.py Sygic_patched.xapk
+```
+
+`build_apatch_module.py` takes it from there: pulls the patched base APK and `arm64_v8a` split out of the `.xapk`, renames the split to what `service.sh` expects, and zips them up with `module/module.prop` + `module/service.sh` into `Sygic_patched_apatch.zip` (defaults to `<input>_apatch.zip`; pass a second argument to override) — ready to flash as-is via APatch's module manager. Or just `make module`, which chains `patchall` into it automatically. The APK binaries aren't included in this repo — you generate them yourself.
 
 ## Why no patched APKs, skin files, or decompiled sources in this repo
 

@@ -6,6 +6,7 @@
 #   make keystore  generate_keystore.sh -- ./sygic-patcher.jks
 #   make extract   extract_skins.py     -- ./skin_override/ for skin edits
 #   make patchall  build_patched_xapk.py --all (asks before overwriting an existing *_patched.xapk)
+#   make module    build_apatch_module.py -- APatch module zip from patchall's output
 #   make all       deps + extract + patchall (keystore is a prerequisite of patchall)
 #                  -- also the default: bare `make` == `make all`
 #
@@ -30,13 +31,14 @@ endif
 KEYSTORE := sygic-patcher.jks
 SKIN_MARKER := skin_override/assets/res/skin/skin_config.xml
 OUTPUT := $(basename $(XAPK))_patched.xapk
+MODULE_OUTPUT := $(basename $(OUTPUT))_apatch.zip
 
 # Quiet by default -- pass V=1 (e.g. `make V=1` or `make deps V=1`) to see the
 # underlying commands Make runs, prefixed with $(Q) below.
 V ?= 0
 Q = $(if $(filter 1,$(V)),,@)
 
-.PHONY: deps keystore extract patchall all
+.PHONY: deps keystore extract patchall module all
 
 # Bare `make` (no target) runs `make all`.
 .DEFAULT_GOAL := all
@@ -63,5 +65,8 @@ patchall: deps $(KEYSTORE)
 		esac; \
 	fi; \
 	python3 build_patched_xapk.py "$(XAPK)" "$(OUTPUT)" --all
+
+module: patchall
+	$(Q)python3 build_apatch_module.py "$(OUTPUT)" "$(MODULE_OUTPUT)"
 
 all: deps extract patchall
