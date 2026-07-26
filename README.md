@@ -45,7 +45,7 @@ Finally, I bought a lifetime license with live traffic ages ago. No, I don't wan
 | `-N`, `--no-startup-promo` | `classes2.dex`: Disable the startup webview promo dialog by forcing `ModalManagerImpl.checkShowPromoDialog()` onto its own "nothing to show" path. That check has no license/premium gate at all, so it nags lifetime/premium accounts exactly like free ones. |
 | `-S DIR`, `--skins DIR` | Splices in any `.xml`/`.json` files under `DIR/assets/res/skin/` that differ from the originals — e.g. hand-edited night-mode map color tables. Defaults to `./skin_override` (see `extract_skins.py` below) and is applied automatically whenever that directory exists; pass `-S` explicitly only to point elsewhere. |
 | `-L`, `--debug-licenses` | `classes6.dex`: makes `SettingItemsManager.J()` return its built "Licenses" debug-menu folder instead of discarding it (dead code, no flag gate). Requires `-D`. **Not included in `--all`** — the screen it exposes is permanently empty (unfinished ViewModel stub), so it's not actually useful. |
-| `--all` | `-F -D -R -N --turn-ease=decelerate` |
+| `--all` | Apply all patches: `-F -D -R -N -T decelerate` |
 | `-v`, `--verbose` | Print the full external commands (`java`, `zipalign`, `apksigner`) as they run. Off by default. |
 
 Every patch verifies its target before writing anything, so a version mismatch fails safely instead of producing a broken build. Each one also searches fresh for whatever stays stable across versions (surrounding bytes, a field name, a debug string, which `classesN.dex` a class actually lives in) rather than trusting a fixed offset or path — but only applies the fix when that search is unambiguous.
