@@ -48,9 +48,9 @@ Finally, I bought a lifetime license with live traffic ages ago. No, I don't wan
 | `--all` | Enables `-F -D -R -N` with `--turn-ease=decelerate` (not `-L`). |
 | `-v`, `--verbose` | Print the full external commands (`java`, `zipalign`, `apksigner`) as they run. Off by default. |
 
-Every patch asserts the expected original bytes/text before writing anything and aborts on a mismatch, so running it against a different app version fails safely instead of producing a broken build. Every patch also has a bit of built-in update resistance: rather than trusting a fixed offset or file path from the version this was derived against, each one locates its target fresh by searching for whatever about it stays stable across versions (surrounding bytes, a field name, a debug string) instead of the volatile parts (exact byte offsets, obfuscated identifiers) — but only when that search is unambiguous, since guessing wrong is worse than not patching at all. This extends to *which* `classesN.dex` a given class lives in: multidex sharding isn't stable across releases either, so nothing is hardcoded to a specific dex file — each smali patch is independently resolved to whichever dex actually defines its target.
+Every patch verifies its target before writing anything, so a version mismatch fails safely instead of producing a broken build. Each one also searches fresh for whatever stays stable across versions (surrounding bytes, a field name, a debug string, which `classesN.dex` a class actually lives in) rather than trusting a fixed offset or path — but only applies the fix when that search is unambiguous.
 
-If a patch still can't find its target, it's not necessarily fatal: when run from a terminal, it asks whether to skip just that one patch and keep going with the rest of the build. Declining, or running non-interactively, aborts the whole build as before — skipping is opt-in, never a silent default.
+If a target still can't be found, it's not fatal: run from a terminal, you're asked whether to skip just that patch and continue.
 
 ## Requirements
 
