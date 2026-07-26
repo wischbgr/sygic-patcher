@@ -17,7 +17,7 @@ All patches were originally derived against **26.4.2-115708**, but the update-re
 * [**26.3.2-112577**](https://apkpure.com/de/sygic-gps-navigation-maps-for-mobile/com.sygic.aura/download/26.3.2-112577)
 * [**26.2.0-108257**](https://apkpure.com/de/sygic-gps-navigation-maps-for-mobile/com.sygic.aura/download/26.2.0-108257)
 
-Newer versions might work too but they haven't been tested.
+> Other versions might work but haven't been tested.
 
 ## About
 I highly prefer Sygic's approach to driver-centered usability and UI design over Google Maps and always liked the smooth navigation experience it provided. However, a few years ago (anything after Version 18, I guess) they removed the **Battery Management** feature, which allowed switching between *OPTIMIZED* and *PERFORMANCE* mode. What *OPTIMIZED* effectively does is constantly change the framerate of the natively rendered OpenGL view to **15fps** during slow movement and boost it to max (**60fps or 120fps**) during faster camera movements. In reality, this results in a noticeably choppy and inconsistent experience, which makes your high-end phone look like it can't handle simple navigation apps.
